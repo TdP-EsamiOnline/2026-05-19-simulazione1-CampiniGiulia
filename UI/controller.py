@@ -7,10 +7,20 @@ class Controller:
         self._view = view
         # the model, which implements the logic of the program and holds the data
         self._model = model
+        self.genereSelezionato = None
 
     def fillDDGenre(self):
-        pass
+        generi = self._model.getAllGeneri()
+        generiOpt = list(map(lambda x: ft.dropdown.Option(data = x, text = x.Name, on_click = self.readDDGenere), generi))
+        self._view._ddGenre.options= generiOpt
 
+
+    def readDDGenere(self, e):
+        if e.control.data is None:
+            self.genereSelezionato = None
+        else:
+            self.genereSelezionato = e.control.data
+            print(self.genereSelezionato)
     def handleCreaGrafo(self, e):
         pass
 
