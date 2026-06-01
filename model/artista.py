@@ -12,4 +12,4 @@ class Artista:
         return hash(self.ArtistId)
 
     def __eq__(self, other):
-        return self.ArtistId == other.ArtistaId
+        return self.ArtistId == other.ArtistId

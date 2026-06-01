@@ -1,3 +1,5 @@
+import copy
+
 import networkx as nx
 
 from database.DAO import DAO
@@ -44,3 +46,58 @@ class Model:
         return self._grafo.nodes
     def getNumEdges(self):
         return len(self._grafo.edges)
+
+    def getMaggAffl(self):
+        bestArt = None
+        bestAffl = 0
+        for n in self._grafo.nodes:
+            arcEntr = 0
+            arcUsc = 0
+            for a in self._grafo.in_edges(n):
+                arcEntr += self._grafo[a[0]][a[1]]['weight']
+            for a in self._grafo.out_edges(n):
+                arcUsc += self._grafo[a[0]][a[1]]['weight']
+            affl = arcUsc - arcEntr
+            if affl>bestAffl:
+                bestArt = n
+                bestAffl = affl
+        return bestArt, bestAffl
+
+    def getTopArchi(self):
+        archi = list(self._grafo.edges(data="weight"))
+        archi.sort(key = lambda x: x[2], reverse = True)
+        return archi[:5]
+
+    def getTopLista(self, source):
+        self._bestListaArt = []
+        parziale = [source]
+        pesoCorr = 0
+        for n in self._grafo.successors(source):
+            if n not in parziale:
+                if self._grafo[source][n]['weight'] > pesoCorr:
+                    pesoCorr = self._grafo[source][n]['weight']
+                    parziale.append(n)
+                    self._ricorsione(parziale, pesoCorr)
+                    parziale.pop()
+        return self._bestListaArt
+
+    def _ricorsione(self, parziale, pesoCorr):
+        #cond Ottimale
+        if len(parziale) > len(self._bestListaArt):
+            self._bestListaArt = copy.deepcopy(parziale)
+        else:
+            for n in self._grafo.successors(parziale[-1]):
+                if n not in parziale:
+                    m = parziale[-1]
+                    if self._grafo[m][n]['weight'] > pesoCorr:
+                        n = pesoCorr
+                        pesoCorr = self._grafo[m][n]['weight']
+                        parziale.append(n)
+                        self._ricorsione(parziale, pesoCorr)
+                        parziale.pop()
+
+
+    def getScore(self):
+        pass
+    def getGrafo(self):
+        return self._grafo
