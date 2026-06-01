@@ -61,8 +61,20 @@ class Controller:
             nodiCamminoLungo = self._model.getTopLista(self.artistaSelezionato)
             if len(nodiCamminoLungo) != 0:
                 self._view.txt_result.controls.append(ft.Text(f"Cammino trovato lungo {len(nodiCamminoLungo)}"))
-                for n in range(0, len(nodiCamminoLungo)-1):
-                    self._view.txt_result.controls.append(ft.Text(f"{nodiCamminoLungo[0].Name} - {nodiCamminoLungo[1].Name} -- {self._model.getGrafo()[nodiCamminoLungo[0]][nodiCamminoLungo[1]]['weight']}", color="green")) #{self._model.getGrafo[nodiCamminoLungo[0]][nodiCamminoLungo[1]]['weight']}
+                # PROBLEMA3: qui c'era un piccolo problema con la stampa, perchè non cambiava l'indice di nodiCamminoLungo.
+                # Me lo sono riscritto sotto perchè non trovavo il problema, ma basta passare n ed n+1 come argomenti nelle []
+                # for n in range(0, len(nodiCamminoLungo)-1):
+                #     self._view.txt_result.controls.append(ft.Text(f"{nodiCamminoLungo[0].Name} - {nodiCamminoLungo[1].Name} -- {self._model.getGrafo()[nodiCamminoLungo[0]][nodiCamminoLungo[1]]['weight']}", color="green")) #{self._model.getGrafo[nodiCamminoLungo[0]][nodiCamminoLungo[1]]['weight']}
+                for n in range(len(nodiCamminoLungo) - 1):
+                    u = nodiCamminoLungo[n]
+                    v = nodiCamminoLungo[n + 1]
+                    w = self._model.getGrafo()[u][v]['weight']
+
+                    self._view.txt_result.controls.append(
+                        ft.Text(f"{u.Name} - {v.Name} -- {w}", color="green")
+                    )
+
+
             else:
                 self._view.txt_result.controls.append(ft.Text("Cammino non trovato"))
 

@@ -31,9 +31,17 @@ class Model:
     def addEdges(self, genere):
         self.collegamenti = DAO.getArtistiArchi(self.idMapArtisti,genere)
         for c in self.collegamenti:
-            if c.artista1.popolarita > c.artista2.popolarita:
+        # PROBLEMA 0: il grafo che abbiamo costruito aveva archi che andavano dal nodo con popolarità più alta a
+        # nodo con popolarità più bassa. Quindi la tua soluzione era corretta (ed infatti tornava con gli screen). Il
+        # problema è che quando cerchiamo una lista di nodi a pesi di archi crescenti, per come è costruito questo grafo
+        # questi cammini non possono che essere lunghi due, perchè tutti gli archi uscenti vanno verso nodi che hanno
+        # popolarità più grande, per cui dopo un solo arco, sono già finito su un nodo con popolarità molto grande e tutti
+        # gli archi uscenti hanno pesi più piccoli. Infatti, se invertiamo il senso dell'arco quando costruiamo il grafo,
+        # e decidiamo che gli arci vanno dal nodo con popolarità minore al nodo con popolarità maggiore, i cammini vengono
+        # decisamente più lunghi.
+            if c.artista1.popolarita < c.artista2.popolarita:
                 self._grafo.add_edge(c.artista1, c.artista2, weight = c.artista1.popolarita+c.artista2.popolarita)
-            elif c.artista1.popolarita < c.artista2.popolarita:
+            elif c.artista1.popolarita > c.artista2.popolarita:
                 self._grafo.add_edge(c.artista2, c.artista1, weight=c.artista1.popolarita + c.artista2.popolarita)
             elif c.artista1.popolarita == c.artista2.popolarita:
                 self._grafo.add_edge(c.artista1, c.artista2, weight=c.artista1.popolarita + c.artista2.popolarita)
@@ -68,6 +76,32 @@ class Model:
         archi.sort(key = lambda x: x[2], reverse = True)
         return archi[:5]
 
+    #QUESTA è una mia soluzione verbosa.
+    # def getTopLista(self, source):
+    #     self._bestListaArt = [source]
+    #     self._ricorsione([source], 0)
+    #     return self._bestListaArt
+    #
+    # def _ricorsione(self, parziale, pesoCorr):
+    #     if len(parziale) > len(self._bestListaArt):
+    #         self._bestListaArt = copy.deepcopy(parziale)
+    #
+    #     last = parziale[-1]
+    #     print("NODE:", last, "PESO CORRENTE:", pesoCorr)
+    #
+    #     for _, succ, data in self._grafo.out_edges(last, data=True):
+    #         pesoArco = data["weight"]
+    #         print("  CANDIDATO:", succ, "PESO:", pesoArco)
+    #
+    #         if succ not in parziale and pesoArco > pesoCorr:
+    #             print("  -> SCENDO")
+    #             parziale.append(succ)
+    #             self._ricorsione(parziale, pesoArco)
+    #             parziale.pop()
+    #         else:
+    #             print("  -> SCARTO")
+
+
     def getTopLista(self, source):
         self._bestListaArt = []
         parziale = [source]
@@ -75,9 +109,10 @@ class Model:
         for n in self._grafo.successors(source):
             if n not in parziale:
                 if self._grafo[source][n]['weight'] > pesoCorr:
-                    pesoCorr = self._grafo[source][n]['weight']
+                    # Stessa cosa di sotto.
+                    # pesoCorr = self._grafo[source][n]['weight']
                     parziale.append(n)
-                    self._ricorsione(parziale, pesoCorr)
+                    self._ricorsione(parziale, self._grafo[source][n]['weight'])
                     parziale.pop()
         return self._bestListaArt
 
@@ -85,16 +120,20 @@ class Model:
         #cond Ottimale
         if len(parziale) > len(self._bestListaArt):
             self._bestListaArt = copy.deepcopy(parziale)
-        else:
-            for n in self._grafo.successors(parziale[-1]):
-                if n not in parziale:
-                    m = parziale[-1]
-                    if self._grafo[m][n]['weight'] > pesoCorr:
-
-                        pesoCorr = self._grafo[m][n]['weight']
-                        parziale.append(n)
-                        self._ricorsione(parziale, pesoCorr)
-                        parziale.pop()
+        # PROBLEMA2: qui c'era un else. In pratica, quando veniva trovata una soluzione ottima,
+        # l'algoritmo non continuava ad esplorare quella traccia, il che è sbagliato. Non si stratta di una condizione di terminazione.
+        for n in self._grafo.successors(parziale[-1]):
+            if n not in parziale:
+                m = parziale[-1]
+                if self._grafo[m][n]['weight'] > pesoCorr:
+                #PROBLEMA 1: aggiornare il nome della variabile pesoCorr qui va a modificarne il riferimento, per cui
+                # quello che nella nostra logica era il peso dell'ultimo arco, veniva copiato anche ai rami "fratelli".
+                # Va bene passare come parametro il pesoCorr ma non rinominiamolo dentro la ricorsione. Il problema non
+                # è passare il peso corrente invece di calcolarlo on the fly, il problema è dagli lo stesso nome.
+                    # pesoCorr = self._grafo[m][n]['weight']
+                    parziale.append(n)
+                    self._ricorsione(parziale, self._grafo[m][n]['weight'])
+                    parziale.pop()
 
 
     def getScore(self):
