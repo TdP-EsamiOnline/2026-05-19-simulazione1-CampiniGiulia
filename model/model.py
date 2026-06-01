@@ -90,7 +90,7 @@ class Model:
                 if n not in parziale:
                     m = parziale[-1]
                     if self._grafo[m][n]['weight'] > pesoCorr:
-                        n = pesoCorr
+
                         pesoCorr = self._grafo[m][n]['weight']
                         parziale.append(n)
                         self._ricorsione(parziale, pesoCorr)
