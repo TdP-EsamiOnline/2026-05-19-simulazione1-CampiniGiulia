@@ -109,7 +109,7 @@ class Model:
         for n in self._grafo.successors(source):
             if n not in parziale:
                 if self._grafo[source][n]['weight'] > pesoCorr:
-                    # Stessa cosa di sotto.
+                    # PROBLEMA 1bis :Stessa cosa di sotto.
                     # pesoCorr = self._grafo[source][n]['weight']
                     parziale.append(n)
                     self._ricorsione(parziale, self._grafo[source][n]['weight'])
